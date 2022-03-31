@@ -241,6 +241,8 @@ class _TimerStartPageState extends State<TimerStartPage> {
   int _counter = 0;
   int _poCounter = 1;
   int _currentSeconds = 0;
+  int _currentBaseTime = 0;
+  double _remainingTimeRatio = 1.0;
   late String _messageAbove;
   String _messageBelow = 'Pomodoro 🍅';
 
@@ -254,6 +256,7 @@ class _TimerStartPageState extends State<TimerStartPage> {
         } else {
           setState(() {
             _currentSeconds = _currentSeconds - 1;
+            _remainingTimeRatio = _currentSeconds / _currentBaseTime;
           });
         }
       },
@@ -272,7 +275,9 @@ class _TimerStartPageState extends State<TimerStartPage> {
       _setNotification1();
       setState(() {
         _messageBelow = 'Break Time ☕️';
+        _remainingTimeRatio = 1.0;
       });
+      _currentBaseTime = _breakTime;
       _currentSeconds = _breakTime;
       _countTimer();
     } else {
@@ -281,7 +286,9 @@ class _TimerStartPageState extends State<TimerStartPage> {
         _poCounter++;
         _messageAbove = '$_poCounter / $_maxPo';
         _messageBelow = 'Pomodoro 🍅';
+        _remainingTimeRatio = 1.0;
       });
+      _currentBaseTime = _poTime;
       _currentSeconds = _poTime;
       _countTimer();
     }
@@ -356,6 +363,8 @@ class _TimerStartPageState extends State<TimerStartPage> {
 
   @override
   Widget build(BuildContext context) {
+    final double _deviceWidth = MediaQuery.of(context).size.width;
+
     return Scaffold(
         appBar: AppBar(title: Text('Po $_maxPo Sets 🚀')),
         body: Container(
@@ -379,9 +388,27 @@ class _TimerStartPageState extends State<TimerStartPage> {
                     style: const TextStyle(fontFamily: 'Roboto', fontSize: 60)),
               ),
               Container(
+                margin: const EdgeInsets.only(top: 40),
+                alignment: Alignment.centerLeft,
+                height: 4,
+                width: double.infinity,
+                child: Column(children: <Widget>[
+                  Container(
+                    height: 1,
+                    width: _deviceWidth * _remainingTimeRatio,
+                    color: Colors.lightGreen,
+                  ),
+                  Container(
+                    height: 3,
+                    width: _deviceWidth * _remainingTimeRatio,
+                    color: Colors.black,
+                  ),
+                ]),
+              ),
+              Container(
                 margin: const EdgeInsets.only(top: 50),
                 child: OutlinedButton(
-                  child: const Text('TOPへ戻る'),
+                  child: const Text('Quit'),
                   onPressed: _goBack,
                 ),
               )
@@ -400,6 +427,7 @@ class _TimerStartPageState extends State<TimerStartPage> {
     Wakelock.enable();
     _maxPo = widget.maxPo;
     _messageAbove = '1 / $_maxPo';
+    _currentBaseTime = _poTime;
     _currentSeconds = _poTime;
     _timer = _countTimer();
   }
